@@ -4,18 +4,22 @@
 
 <h1>{{ book.title }}</h1>
 
-<!-- TODO: Show this only if the user is logged in and the book is not in their 
+<!-- Show this only if the user is logged in and the book is not in their
     favorites-->
-<form action="/favorite/{{ book.id }}" method="POST">
-    <input type="submit" value="Favorite This Book">
-</form>
+{% if current_user.is_authenticated and book not in current_user.favorite_books %}
+    <form action="/favorite/{{ book.id }}" method="POST">
+        <input type="submit" value="Favorite This Book">
+    </form>
+{% endif %}
 
 
-<!-- TODO: Show this only if the user is logged in and the book is not in their 
+<!-- Show this only if the user is logged in and the book is not in their
     favorites-->
-<form action="/unfavorite/{{ book.id }}" method="POST">
-    <input type="submit" value="Unfavorite This Book">
-</form>
+{% if current_user.is_authenticated and book in current_user.favorite_books %}
+    <form action="/unfavorite/{{ book.id }}" method="POST">
+        <input type="submit" value="Unfavorite This Book">
+    </form>
+{% endif %}
 
 <p>
     <strong>Author</strong>: {{ book.author.name }}
@@ -34,8 +38,8 @@
 </p>
 
 <p>
-    <strong>Genres</strong>: 
-    
+    <strong>Genres</strong>:
+
     {% for genre in book.genres %}
     {{ genre.name }},
     {% endfor %}
@@ -48,19 +52,19 @@
 
         {{ form.title.label }}
         {{ form.title }}
-        
+
         {{ form.publish_date.label }}
         {{ form.publish_date(placeholder="YYYY-mm-dd") }}
-        
+
         {{ form.author.label }}
         {{ form.author }}
-        
+
         {{ form.audience.label }}
         {{ form.audience }}
-        
+
         {{ form.genres.label }}
         {{ form.genres }}
-            
+
         {{ form.submit }}
     </fieldset>
 </form>

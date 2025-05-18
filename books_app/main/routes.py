@@ -18,16 +18,17 @@ main = Blueprint("main", __name__)
 def homepage():
     all_books = Book.query.all()
     all_users = User.query.all()
-    return render_template('home.html', 
+    return render_template('home.html',
         all_books=all_books, all_users=all_users)
 
 
 @main.route('/create_book', methods=['GET', 'POST'])
+@login_required
 def create_book():
     form = BookForm()
 
     # if form was submitted and contained no errors
-    if form.validate_on_submit(): 
+    if form.validate_on_submit():
         new_book = Book(
             title=form.title.data,
             publish_date=form.publish_date.data,
@@ -44,6 +45,7 @@ def create_book():
 
 
 @main.route('/create_author', methods=['GET', 'POST'])
+@login_required
 def create_author():
     # TODO: Make an AuthorForm instance
 
@@ -57,6 +59,7 @@ def create_author():
 
 
 @main.route('/create_genre', methods=['GET', 'POST'])
+@login_required
 def create_genre():
     # TODO: Make a GenreForm instance
 
@@ -74,8 +77,8 @@ def book_detail(book_id):
     book = Book.query.get(book_id)
     form = BookForm(obj=book)
 
-    # TODO: If the form was submitted and is valid, update the fields in the 
-    # Book object and save to the database, then flash a success message to the 
+    # TODO: If the form was submitted and is valid, update the fields in the
+    # Book object and save to the database, then flash a success message to the
     # user and redirect to the book detail page
 
     return render_template('book_detail.html', book=book, form=form)
@@ -86,27 +89,38 @@ def profile(username):
     # TODO: Make a query for the user with the given username, and send to the
     # template
 
-    # STRETCH CHALLENGE: Add ability to modify a user's username or favorite 
+    # STRETCH CHALLENGE: Add ability to modify a user's username or favorite
     # books
     return render_template('profile.html', username=username)
 
 
-# TODO: Add `@login_required`
+#  Add `@login_required`
 @main.route('/favorite/<book_id>', methods=['POST'])
+@login_required
 def favorite_book(book_id):
     book = Book.query.get(book_id)
-    # TODO: If the book is not already in user's favorites, then add it,
+    # If the book is not already in user's favorites, then add it,
     # commit the change to the database, and flash a success message.
 
     # Then, redirect the user to the book detail page for the given book.
-    return "Not yet implemented!"
+    if book not in current_user.favorite_books:
+        current_user.favorite_books.append(book)
+        db.session.commit()
+        flash('Book added to favorites')
+    return redirect(url_for('main.book_detail', book_id=book_id))
 
 
-# TODO: Add `@login_required`
+# Add `@login_required`
 @main.route('/unfavorite/<book_id>', methods=['POST'])
+@login_required
 def unfavorite_book(book_id):
-    # TODO: If the book is in user's favorites, then remove it,
+    # If the book is in user's favorites, then remove it,
     # commit the change to the database, and flash a success message.
 
     # Then, redirect the user to the book detail page for the given book.
-    return "Not yet implemented!"
+    book = Book.query.get(book_id)
+    if book in current_user.favorite_books:
+        current_user.favorite_books.remove(book)
+        db.session.commit()
+        flash('Book removed from favorites')
+    return redirect(url_for('main.book_detail', book_id=book_id))
